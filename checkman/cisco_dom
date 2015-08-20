@@ -1,0 +1,13 @@
+title: Cisco Digital Optical Monitoring
+agents: snmp
+catalog: hw/network/cisco
+author: Thomas Liske <liske@ibh.de>
+license: GPL
+distribution: check_mk
+description:
+ This check monitors transmit and receive power levels of SFP-based
+ network interfaces with Digital Optical Monitoring feature.
+
+inventory:
+ Two checks per interface are created. The plugin supports auto
+ discovery.

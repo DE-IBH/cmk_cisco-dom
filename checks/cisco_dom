@@ -1,0 +1,86 @@
+#!/usr/bin/python
+# -*- encoding: utf-8; py-indent-offset: 4 -*-
+
+# cmk_cisco-dom - check-mk plugin for SNMP-based Cisco Digital-Optical-Monitoring monitoring
+#
+# Authors:
+#   Thomas Liske <liske@ibh.de>
+#
+# Copyright Holder:
+#   2015 (C) IBH IT-Service GmbH [http://www.ibh.de/]
+#
+# License:
+#   This program is free software; you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation; either version 2 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this package; if not, write to the Free Software
+#   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA
+#
+
+# generate service name from SNMP values
+def get_name_cisdom(sidx, names):
+    import re
+    for idx, name in names:
+	if idx == sidx:
+	    n = re.sub(r' (\w)(ransmit|eceive) ', r' \1x ', name)
+	    return re.sub(r' Sensor$', '', n)
+    return ''
+
+# generate service state
+def get_state_cisdom(shealth, strigger, sdescr0):
+    import re
+    sdescr = re.sub(r'^Monitors the ', "", sdescr0)
+    sdescr = re.sub(r's?\.$', "", sdescr)
+    return "%s: %s (%s)" % (sdescr, shealth, strigger)
+
+
+# generate list of valid monitors
+def inventory_cisdom(checktyp, info):
+    inventory = []
+    for sidx, stype, sprecis, svalue, sstatus in info[0]:
+	# ignore monitors in the state 'unavailable' or 'nonoperational'
+	if stype == '14' and sstatus == '1':
+	    sid = get_name_cisdom(sidx, info[1])
+	    if sid != '':
+		inventory.append( (sid, [sidx, int(svalue) * 10**(-1 * int(sprecis)) ]) )
+    return inventory
+
+# eval service state
+def check_cisdom(item, params, info):
+    for sidx, stype, sprecis, svalue, sstatus in info[0]:
+        if sidx == params[0]:
+	    spower = int(svalue) * 10**(-1 * int(sprecis))
+	    sdescr = "Power Level %.1f dBm (Δ %.3f dBm)" % (spower, (spower - params[1]))
+	    perf = [
+		['power', spower, '', '', '', ''],
+		['deviation', (spower - params[1]), '', '', '', ''],
+	    ]
+            if sstatus != '1':
+                return (3, ("UKNOWN STATUS (%d) - " % sstatus) + sdescr, perf)
+            elif abs(spower - params[1]) > 1:
+                return (2, sdescr, perf)
+            elif abs(spower - params[1]) > 0.5:
+                return (1, sdescr, perf)
+            else:
+                return (0, sdescr, perf)
+    return (3, "index '%s' not found in SNMP table" % sidx)
+
+
+# check registry
+check_info["cisco_dom"] = {
+    'check_function':          check_cisdom,
+    'inventory_function':      inventory_cisdom,
+    'service_description':     'DOM %s',
+    'snmp_info':               [('.1.3.6.1.4.1.9.9.91.1.1.1.1', [OID_END, '1', '3', '4', '5']), ('.1.3.6.1.2.1.47.1.1.1.1', [OID_END, '7'])],
+    'snmp_scan_function':      \
+     lambda oid: oid(".1.3.6.1.4.1.9.9.91.1.1.1.1.*") != None,
+    'has_perfdata':            True,
+}
