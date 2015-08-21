@@ -34,14 +34,6 @@ def get_name_cisdom(sidx, names):
 	    return re.sub(r' Sensor$', '', n)
     return ''
 
-# generate service state
-def get_state_cisdom(shealth, strigger, sdescr0):
-    import re
-    sdescr = re.sub(r'^Monitors the ', "", sdescr0)
-    sdescr = re.sub(r's?\.$', "", sdescr)
-    return "%s: %s (%s)" % (sdescr, shealth, strigger)
-
-
 # generate list of valid monitors
 def inventory_cisdom(checktyp, info):
     inventory = []
