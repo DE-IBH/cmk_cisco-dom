@@ -30,8 +30,7 @@ def get_name_cisdom(sidx, names):
     import re
     for idx, name in names:
 	if idx == sidx:
-	    n = re.sub(r' (\w)(ransmit|eceive) ', r' \1x ', name)
-	    return re.sub(r' Sensor$', '', n)
+	    return re.sub(r' (\w)(ransmit|eceive) ', r' \1x ', name)
     return ''
 
 # generate list of valid monitors
@@ -50,7 +49,7 @@ def check_cisdom(item, params, info):
     for sidx, stype, sprecis, svalue, sstatus in info[0]:
         if sidx == params[0]:
 	    spower = int(svalue) * 10**(-1 * int(sprecis))
-	    sdescr = "Power Level %.1f dBm (Δ %." + sprecis + "f dB)" % (spower, (spower - params[1]))
+	    sdescr = ("Power Level %.1f dBm (Δ %." + sprecis + "f dB)") % (spower, (spower - params[1]))
 	    perf = [
 		['power level', spower, '', '', '', ''],
 		['deviation', (spower - params[1]), '', '', '', ''],
