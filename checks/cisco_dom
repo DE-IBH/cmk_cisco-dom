@@ -34,6 +34,9 @@ cisdom_snmp_rels = {
     '6' : '≠',
 }
 
+cisdom_dev_warn = 1.0
+cisdom_dev_crit = 2.0
+
 # generate service name from SNMP values
 def get_name_cisdom(sidx, names):
     import re
@@ -102,7 +105,7 @@ def check_cisdom(item, params, info):
 	    sdescr = ("Power Level %." + sprecis + "f dBm (Δ %." + sprecis + "f dB)") % (spower, (spower - params[1]))
 	    perf = [
 		['power level', ("%." + sprecis + "f") % spower, get_thresh_fmt('10', sprecis, sthresh), get_thresh_fmt('20', sprecis, sthresh), '', ''],
-		['deviation', ("%." + sprecis + "f") % (spower - params[1]), '-0.5:0.5', '-1.0:1.0', '', ''],
+		['deviation', ("%." + sprecis + "f") % (spower - params[1]), '-%.1f:%.1f' % (cisdom_dev_warn, cisdom_dev_warn), '-%.1f:%.1f' % (cisdom_dev_crit, cisdom_dev_crit), '', ''],
 	    ]
 	    tsever, tstr = get_thresh_trigger(sprecis, sthresh)
 	    if tsever == 2:
@@ -116,10 +119,10 @@ def check_cisdom(item, params, info):
 	    if sstatus != '1':
 		sdescr += " - sensor status unknown"
 		dsever = 3
-	    elif abs(spower - params[1]) > 1:
+	    elif abs(spower - params[1]) > cisdom_dev_crit:
 		sdescr += " - deviation critical"
 		dsever = 2
-	    elif abs(spower - params[1]) > 0.5:
+	    elif abs(spower - params[1]) > cisdom_dev_warn:
 		sdescr += " - deviation warning"
 		dsever = 1
 	    return (max([tsever, dsever]), sdescr, perf)
@@ -136,7 +139,7 @@ check_info["cisco_dom"] = {
 	# entSensorValueEntry
 	('.1.3.6.1.4.1.9.9.91.1.1.1.1', [OID_END, '1', '3', '4', '5']),
 	# entPhysicalEntry
-	('.1.3.6.1.2.1.47.1.1.1.1', [OID_END, '7']),
+	('.1.3.6.1.2.1.47.1.1.1.1', [OID_END, '2']),
 	# entSensorThresholdEntry
 	('.1.3.6.1.4.1.9.9.91.1.2.1.1', [OID_STRING, '2', '3', '4', '5'])
     ],
