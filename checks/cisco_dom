@@ -50,21 +50,23 @@ def filter_thresh_cisdom(sidx, sthresh):
     return [t for t in sthresh if re.match(r'^\.1\.3\.6\.1\.4\.1\.9\.9\.91\.1\.2\.1\.1\.2\.%s' % sidx, t[0])]
 
 # get performance thresholds in nagios range format
-def get_thresh_fmt(severity, precision, thresholds):
-    trange = [None, None]
-    for soid, ssever, srel, svalue, striggered in thresholds:
-	if ssever in severity:
-	    if srel in ['1', '2']:
-		trange[0] = ("%." + precision + "f") % (int(svalue) * 10**(-1 * int(precision)))
-	    elif srel in ['3', '4']:
-		trange[1] = ("%." + precision + "f") % (int(svalue) * 10**(-1 * int(precision)))
-    if trange[0] == None and trange[1] == None:
-	return ''
-    if trange[0] == None:
-	return '~:' + trange[1]
-    if trange[1] == None:
-	return trange[0] + ':'
-    return trange[0] + ":" + trange[1]
+def get_thresh_fmt(severities, precision, thresholds):
+    for severity in severities:
+	trange = [None, None]
+	for soid, ssever, srel, svalue, striggered in thresholds:
+	    if ssever in severity:
+		if srel in ['1', '2']:
+		    trange[0] = ("%." + precision + "f") % (int(svalue) * 10**(-1 * int(precision)))
+		elif srel in ['3', '4']:
+		    trange[1] = ("%." + precision + "f") % (int(svalue) * 10**(-1 * int(precision)))
+	if trange[0] == None and trange[1] == None:
+	    continue
+	if trange[0] == None:
+	    return '~:' + trange[1]
+	if trange[1] == None:
+	    return trange[0] + ':'
+	return trange[0] + ":" + trange[1]
+    return ''
 
 # get worst threshold trigger
 def get_thresh_trigger(precision, thresholds):
@@ -104,7 +106,7 @@ def check_cisdom(item, params, info):
 	    spower = int(svalue) * 10**(-1 * int(sprecis))
 	    sdescr = ("Power Level %." + sprecis + "f dBm (Δ %." + sprecis + "f dB)") % (spower, (spower - params[1]))
 	    perf = [
-		['power level', ("%." + sprecis + "f") % spower, get_thresh_fmt('10', sprecis, sthresh), get_thresh_fmt('20', sprecis, sthresh), '', ''],
+		['power level', ("%." + sprecis + "f") % spower, get_thresh_fmt(['10'], sprecis, sthresh), get_thresh_fmt(['20', '30'], sprecis, sthresh), '', ''],
 		['deviation', ("%." + sprecis + "f") % (spower - params[1]), '-%.1f:%.1f' % (cisdom_dev_warn, cisdom_dev_warn), '-%.1f:%.1f' % (cisdom_dev_crit, cisdom_dev_crit), '', ''],
 	    ]
 	    tsever, tstr = get_thresh_trigger(sprecis, sthresh)
