@@ -25,6 +25,15 @@
 #   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA
 #
 
+cisdom_snmp_rels = {
+    '1' : '<',
+    '2' : '≤',
+    '3' : '>',
+    '4' : '≥',
+    '5' : '=',
+    '6' : '≠',
+}
+
 # generate service name from SNMP values
 def get_name_cisdom(sidx, names):
     import re
@@ -55,21 +64,23 @@ def get_thresh_fmt(severity, precision, thresholds):
     return trange[0] + ":" + trange[1]
 
 # get worst threshold trigger
-def get_thresh_trigger(thresholds):
+def get_thresh_trigger(precision, thresholds):
     severity = None
+    threshold = None
     for soid, ssever, srel, svalue, striggered in thresholds:
 	if striggered == '1' and (severity == None or severity < int(ssever)):
 	    severity = int(ssever)
+	    threshold = (cisdom_snmp_rels[srel] + "%." + precision + "f dBm") % (int(svalue) * 10**(-1 * int(precision)))
     # critical
     if severity in [20, 30]:
-	return 2
+	return [2, threshold]
     # warning
     if severity in [10]:
-	return 1
+	return [1, threshold]
     # unknown
     if severity != None:
-	return 3
-    return 0
+	return [3, threshold]
+    return [0, '']
 
 # generate list of valid monitors
 def inventory_cisdom(checktyp, info):
@@ -93,13 +104,13 @@ def check_cisdom(item, params, info):
 		['power level', ("%." + sprecis + "f") % spower, get_thresh_fmt('10', sprecis, sthresh), get_thresh_fmt('20', sprecis, sthresh), '', ''],
 		['deviation', ("%." + sprecis + "f") % (spower - params[1]), '-0.5:0.5', '-1.0:1.0', '', ''],
 	    ]
-	    tsever = get_thresh_trigger(sthresh)
+	    tsever, tstr = get_thresh_trigger(sprecis, sthresh)
 	    if tsever == 2:
-		sdescr += " - SNMP threshold critical"
+		sdescr += " - SNMP threshold critical " + tstr
 	    elif tsever == 1:
-		sdescr += " - SNMP threshold warning"
+		sdescr += " - SNMP threshold warning " + tstr
 	    elif tsever == 3:
-		sdescr += " - SNMP threshold unknown"
+		sdescr += " - SNMP threshold other " + tstr
 
 	    dsever = 0
 	    if sstatus != '1':
