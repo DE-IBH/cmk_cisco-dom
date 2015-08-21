@@ -33,8 +33,30 @@ def get_name_cisdom(sidx, names):
 	    return re.sub(r' (\w)(ransmit|eceive) ', r' \1x ', name)
     return ''
 
+# filter thresholds from SNMP values for a given sensor index
+def filter_thresh_cisdom(sidx, sthresh):
+    return [t for t in sthresh if re.match(r'^\.1\.3\.6\.1\.4\.1\.9\.9\.91\.1\.2\.1\.1\.2\.%s' % sidx, t[0])]
+
+# get performance thresholds in nagios range format
+def get_thresh_fmt(severity, precision, thresholds):
+    trange = [None, None]
+    for soid, ssever, srel, svalue, striggered in thresholds:
+	if ssever in severity:
+	    if srel in ['1', '2']:
+		trange[0] = ("%." + precision + "f") % (int(svalue) * 10**(-1 * int(precision)))
+	    elif srel in ['3', '4']:
+		trange[1] = ("%." + precision + "f") % (int(svalue) * 10**(-1 * int(precision)))
+    if trange[0] == None and trange[1] == None:
+	return ''
+    if trange[0] == None:
+	return '~:' + trange[1]
+    if trange[1] == None:
+	return trange[0] + ':'
+    return trange[0] + ":" + trange[1]
+
 # generate list of valid monitors
 def inventory_cisdom(checktyp, info):
+#    import pprint ; pprint.pprint(info)
     inventory = []
     for sidx, stype, sprecis, svalue, sstatus in info[0]:
 	# ignore monitors in the state 'unavailable' or 'nonoperational'
@@ -48,11 +70,12 @@ def inventory_cisdom(checktyp, info):
 def check_cisdom(item, params, info):
     for sidx, stype, sprecis, svalue, sstatus in info[0]:
         if sidx == params[0]:
+	    sthresh = filter_thresh_cisdom(sidx, info[2])
 	    spower = int(svalue) * 10**(-1 * int(sprecis))
-	    sdescr = ("Power Level %.1f dBm (Δ %." + sprecis + "f dB)") % (spower, (spower - params[1]))
+	    sdescr = ("Power Level %." + sprecis + "f dBm (Δ %." + sprecis + "f dB)") % (spower, (spower - params[1]))
 	    perf = [
-		['power level', spower, '', '', '', ''],
-		['deviation', (spower - params[1]), '', '', '', ''],
+		['power level', ("%." + sprecis + "f") % spower, get_thresh_fmt('10', sprecis, sthresh), get_thresh_fmt('20', sprecis, sthresh), '', ''],
+		['deviation', ("%." + sprecis + "f") % (spower - params[1]), '-0.5:0.5', '-1.0:1.0', '', ''],
 	    ]
             if sstatus != '1':
                 return (3, ("UKNOWN STATUS (%d) - " % sstatus) + sdescr, perf)
@@ -70,7 +93,14 @@ check_info["cisco_dom"] = {
     'check_function':          check_cisdom,
     'inventory_function':      inventory_cisdom,
     'service_description':     'DOM %s',
-    'snmp_info':               [('.1.3.6.1.4.1.9.9.91.1.1.1.1', [OID_END, '1', '3', '4', '5']), ('.1.3.6.1.2.1.47.1.1.1.1', [OID_END, '7'])],
+    'snmp_info':               [
+	# entSensorValueEntry
+	('.1.3.6.1.4.1.9.9.91.1.1.1.1', [OID_END, '1', '3', '4', '5']),
+	# entPhysicalEntry
+	('.1.3.6.1.2.1.47.1.1.1.1', [OID_END, '7']),
+	# entSensorThresholdEntry
+	('.1.3.6.1.4.1.9.9.91.1.2.1.1', [OID_STRING, '2', '3', '4', '5'])
+    ],
     'snmp_scan_function':      \
      lambda oid: oid(".1.3.6.1.4.1.9.9.91.1.1.1.1.*") != None,
     'has_perfdata':            True,
