@@ -54,9 +54,25 @@ def get_thresh_fmt(severity, precision, thresholds):
 	return trange[0] + ':'
     return trange[0] + ":" + trange[1]
 
+# get worst threshold trigger
+def get_thresh_trigger(thresholds):
+    severity = None
+    for soid, ssever, srel, svalue, striggered in thresholds:
+	if striggered == '1' and (severity == None or severity < int(ssever)):
+	    severity = int(ssever)
+    # critical
+    if severity in [20, 30]:
+	return 2
+    # warning
+    if severity in [10]:
+	return 1
+    # unknown
+    if severity != None:
+	return 3
+    return 0
+
 # generate list of valid monitors
 def inventory_cisdom(checktyp, info):
-#    import pprint ; pprint.pprint(info)
     inventory = []
     for sidx, stype, sprecis, svalue, sstatus in info[0]:
 	# ignore monitors in the state 'unavailable' or 'nonoperational'
@@ -77,14 +93,26 @@ def check_cisdom(item, params, info):
 		['power level', ("%." + sprecis + "f") % spower, get_thresh_fmt('10', sprecis, sthresh), get_thresh_fmt('20', sprecis, sthresh), '', ''],
 		['deviation', ("%." + sprecis + "f") % (spower - params[1]), '-0.5:0.5', '-1.0:1.0', '', ''],
 	    ]
-            if sstatus != '1':
-                return (3, ("UKNOWN STATUS (%d) - " % sstatus) + sdescr, perf)
-            elif abs(spower - params[1]) > 1:
-                return (2, sdescr, perf)
-            elif abs(spower - params[1]) > 0.5:
-                return (1, sdescr, perf)
-            else:
-                return (0, sdescr, perf)
+	    tsever = get_thresh_trigger(sthresh)
+	    if tsever == 2:
+		sdescr += " - SNMP threshold critical"
+	    elif tsever == 1:
+		sdescr += " - SNMP threshold warning"
+	    elif tsever == 3:
+		sdescr += " - SNMP threshold unknown"
+
+	    dsever = 0
+	    if sstatus != '1':
+		sdescr += " - sensor status unknown"
+		dsever = 3
+	    elif abs(spower - params[1]) > 1:
+		sdescr += " - deviation critical"
+		dsever = 2
+	    elif abs(spower - params[1]) > 0.5:
+		sdescr += " - deviation warning"
+		dsever = 1
+	    return (max([tsever, dsever]), sdescr, perf)
+
     return (3, "index '%s' not found in SNMP table" % sidx)
 
 
