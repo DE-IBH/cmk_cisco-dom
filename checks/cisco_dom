@@ -50,9 +50,9 @@ def check_cisdom(item, params, info):
     for sidx, stype, sprecis, svalue, sstatus in info[0]:
         if sidx == params[0]:
 	    spower = int(svalue) * 10**(-1 * int(sprecis))
-	    sdescr = "Power Level %.1f dBm (Δ %.3f dBm)" % (spower, (spower - params[1]))
+	    sdescr = "Power Level %.1f dBm (Δ %.3f dB)" % (spower, (spower - params[1]))
 	    perf = [
-		['power', spower, '', '', '', ''],
+		['power level', spower, '', '', '', ''],
 		['deviation', (spower - params[1]), '', '', '', ''],
 	    ]
             if sstatus != '1':
