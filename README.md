@@ -25,9 +25,12 @@ Setup
 -----
 
 This package enumerates *entSensorValueTable*, *entPhysicalTable* and
-*entSensorThresholdTable* from *CISCO-ENTITY-SENSOR-MIB* to find
+*entSensorThresholdTable* from *CISCO-ENTITY-SENSOR-MIB*[2] to find
 transmit (Tx) and receive (Rx) power sensor levels. Any DOM aware SFP
-of a host is detected once reinventoring it.
+is detected once reinventoring it.
+
+[2] http://tools.cisco.com/Support/SNMP/do/BrowseMIB.do?local=en&step=2&mibName=CISCO-ENTITY-SENSOR-MIB
 
 Interfaces which are administrative shutdown report (critical) Rx values.
-You need to build ignore rules within check_mk to drop those services.
+You need to build ignore rules within check_mk to drop those services
+since it is not easily possible to detect if an interface is shutdown.
