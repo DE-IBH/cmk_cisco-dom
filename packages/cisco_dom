@@ -1,6 +1,6 @@
 {'author': 'Thomas Liske <liske@ibh.de>',
  'description': 'This check monitors Cisco Digital-Optical-Monitoring values using SNMP.',
- 'download_url': 'https://github.com/DE-IBH/cmk_ssv-monitors/releases',
+ 'download_url': 'https://github.com/DE-IBH/cmk_cisco-dom/releases',
  'files': {'agents': [],
            'checkman': ['cisco_dom'],
            'checks': ['cisco_dom'],
