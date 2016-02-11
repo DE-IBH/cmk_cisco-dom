@@ -129,7 +129,7 @@ def check_cisdom(item, params, info):
 		dsever = 1
 	    return (max([tsever, dsever]), sdescr, perf)
 
-    return (3, "index '%s' not found in SNMP table" % sidx)
+    return (3, "index '%s' not found in SNMP table" % params[0])
 
 
 # check registry
