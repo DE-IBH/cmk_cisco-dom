@@ -104,7 +104,7 @@ def check_cisdom(item, params, info):
         if sidx == params[0]:
 	    sthresh = filter_thresh_cisdom(sidx, info[2])
 	    spower = int(svalue) * 10**(-1 * int(sprecis))
-	    sdescr = ("Power Level %." + sprecis + "f dBm (Δ %." + sprecis + "f dB)") % (spower, (spower - params[1]))
+	    sdescr = ("Power Level %." + str(sprecis) + "f dBm (Δ %." + str(sprecis) + "f dB)") % (spower, (spower - params[1]))
 	    perf = [
 		['power level', ("%." + sprecis + "f") % spower, get_thresh_fmt(['10'], sprecis, sthresh), get_thresh_fmt(['20', '30'], sprecis, sthresh), '', ''],
 		['deviation', ("%." + sprecis + "f") % (spower - params[1]), '-%.1f:%.1f' % (cisdom_dev_warn, cisdom_dev_warn), '-%.1f:%.1f' % (cisdom_dev_crit, cisdom_dev_crit), '', ''],

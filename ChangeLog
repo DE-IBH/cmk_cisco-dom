@@ -1,3 +1,9 @@
+cmk_cisco-dom (0.2) unstable; urgency=low
+
+  * Fix missing string convertion required for check-mk 1.2.8.
+
+ -- Thomas Liske <liske@ibh.de>  
+
 cmk_cisco-dom (0.1) unstable; urgency=low
 
   * Initial release.
