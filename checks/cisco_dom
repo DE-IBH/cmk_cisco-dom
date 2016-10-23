@@ -75,7 +75,7 @@ def get_thresh_trigger(precision, thresholds):
     for soid, ssever, srel, svalue, striggered in thresholds:
 	if striggered == '1' and (severity == None or severity < int(ssever)):
 	    severity = int(ssever)
-	    threshold = (cisdom_snmp_rels[srel] + "%." + precision + "f dBm") % (int(svalue) * 10**(-1 * int(precision)))
+	    threshold = (cisdom_snmp_rels[srel] + "%." + str(precision) + "f dBm") % (int(svalue) * 10**(-1 * int(precision)))
     # critical
     if severity in [20, 30]:
 	return [2, threshold]
