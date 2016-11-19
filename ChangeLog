@@ -1,3 +1,10 @@
+cmk_cisco-dom (0.2) unstable; urgency=low
+
+  * Fix missing string convertion required for check-mk 1.2.8.
+  * Add simple perfometer implementation.
+
+ -- Thomas Liske <liske@ibh.de>  Sat, 19 Nov 2016 12:09:49 +0100
+
 cmk_cisco-dom (0.1) unstable; urgency=low
 
   * Initial release.

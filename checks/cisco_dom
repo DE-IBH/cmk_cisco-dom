@@ -7,7 +7,7 @@
 #   Thomas Liske <liske@ibh.de>
 #
 # Copyright Holder:
-#   2015 (C) IBH IT-Service GmbH [http://www.ibh.de/]
+#   2015 - 2016 (C) IBH IT-Service GmbH [http://www.ibh.de/]
 #
 # License:
 #   This program is free software; you can redistribute it and/or modify
@@ -75,7 +75,7 @@ def get_thresh_trigger(precision, thresholds):
     for soid, ssever, srel, svalue, striggered in thresholds:
 	if striggered == '1' and (severity == None or severity < int(ssever)):
 	    severity = int(ssever)
-	    threshold = (cisdom_snmp_rels[srel] + "%." + precision + "f dBm") % (int(svalue) * 10**(-1 * int(precision)))
+	    threshold = (cisdom_snmp_rels[srel] + "%." + str(precision) + "f dBm") % (int(svalue) * 10**(-1 * int(precision)))
     # critical
     if severity in [20, 30]:
 	return [2, threshold]
@@ -104,7 +104,7 @@ def check_cisdom(item, params, info):
         if sidx == params[0]:
 	    sthresh = filter_thresh_cisdom(sidx, info[2])
 	    spower = int(svalue) * 10**(-1 * int(sprecis))
-	    sdescr = ("Power Level %." + sprecis + "f dBm (Δ %." + sprecis + "f dB)") % (spower, (spower - params[1]))
+	    sdescr = ("Power Level %." + str(sprecis) + "f dBm (Δ %." + str(sprecis) + "f dB)") % (spower, (spower - params[1]))
 	    perf = [
 		['power level', ("%." + sprecis + "f") % spower, get_thresh_fmt(['10'], sprecis, sthresh), get_thresh_fmt(['20', '30'], sprecis, sthresh), '', ''],
 		['deviation', ("%." + sprecis + "f") % (spower - params[1]), '-%.1f:%.1f' % (cisdom_dev_warn, cisdom_dev_warn), '-%.1f:%.1f' % (cisdom_dev_crit, cisdom_dev_crit), '', ''],
@@ -129,7 +129,7 @@ def check_cisdom(item, params, info):
 		dsever = 1
 	    return (max([tsever, dsever]), sdescr, perf)
 
-    return (3, "index '%s' not found in SNMP table" % sidx)
+    return (3, "index '%s' not found in SNMP table" % params[0])
 
 
 # check registry
