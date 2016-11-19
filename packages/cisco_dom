@@ -10,6 +10,6 @@
            'web': []},
  'name': 'cisco_dom',
  'title': 'Cisco Digital Optical Monitoring (SNMP)',
- 'version': '0.1',
+ 'version': '0.2',
  'version.min_required': '1.2.6',
  'version.packaged': '1.2.6'}
