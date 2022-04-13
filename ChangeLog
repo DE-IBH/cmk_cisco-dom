@@ -1,3 +1,9 @@
+cmk_cisco-dom (0.3) unstable; urgency=low
+
+  * Update plugin to check-mk 2.0.
+
+ -- Thomas Liske <liske@ibh.de>  Sat, Wed, 13 Apr 2022 23:56:54 +0200
+
 cmk_cisco-dom (0.2) unstable; urgency=low
 
   * Fix missing string convertion required for check-mk 1.2.8.
