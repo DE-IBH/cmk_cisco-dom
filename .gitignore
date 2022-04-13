@@ -55,3 +55,7 @@ docs/_build/
 
 # PyBuilder
 target/
+
+checks/agent_based_api
+checks/utils
+checks/cmk
